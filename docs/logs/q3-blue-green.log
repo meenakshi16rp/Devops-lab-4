@@ -1,34 +1,34 @@
 meenakshi@ubuntu:~/ensp461-lab4$ kubectl get deploy,pods,svc -n lab4-meenakshi -l app=ensp461-lab4-app
 NAME                                     READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ensp461-lab4-app-blue    2/2     2            2           7s
-deployment.apps/ensp461-lab4-app-green   2/2     2            2           7s
+deployment.apps/ensp461-lab4-app-blue    2/2     2            2           8m2s
+deployment.apps/ensp461-lab4-app-green   2/2     2            2           8m2s
 
-NAME                                         READY   STATUS    RESTARTS   AGE
-pod/ensp461-lab4-app-blue-6469fd5bf5-7vbz6   1/1     Running   0          7s
-pod/ensp461-lab4-app-blue-6469fd5bf5-grt4x   1/1     Running   0          7s
-pod/ensp461-lab4-app-green-875f5b4d9-ndrl2   1/1     Running   0          7s
-pod/ensp461-lab4-app-green-875f5b4d9-z9zcq   1/1     Running   0          7s
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/ensp461-lab4-app-blue-6469fd5bf5-nd29l    1/1     Running   0          36s
+pod/ensp461-lab4-app-blue-6469fd5bf5-tjz9k    1/1     Running   0          36s
+pod/ensp461-lab4-app-green-8597bfcc6b-qltnq   1/1     Running   0          36s
+pod/ensp461-lab4-app-green-8597bfcc6b-wkvpz   1/1     Running   0          36s
 
-meenakshi@ubuntu:~/ensp461-lab4$ # Production traffic currently routed to BLUE (v4.0.0)
-meenakshi@ubuntu:~/ensp461-lab4$ curl -s http://localhost:5410/
-{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-blue-6469fd5bf5-7vbz6","slot":"blue","student":"Meenakshi Rakesh","version":"4.0.0"}
+meenakshi@ubuntu:~/ensp461-lab4$ # Production traffic currently routed to BLUE (v4.0.0) via Service ClusterIP
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s http://10.109.127.181/
+{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-blue-6469fd5bf5-tjz9k","slot":"blue","student":"Meenakshi Rakesh","version":"4.0.0"}
 
 
 meenakshi@ubuntu:~/ensp461-lab4$ # Start continuous zero-downtime probe (30 requests) across BLUE -> GREEN cutover
-req=01 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-req=05 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-req=10 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
+req=01 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-tjz9k
+req=05 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-tjz9k
+req=10 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-nd29l
 >>> PATCHING SERVICE SELECTOR: slot=blue -> slot=green
-req=11 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-req=12 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-req=15 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-req=30 status=200 slot=blue version=4.0.0 pod=ensp461-lab4-app-blue-6469fd5bf5-7vbz6
-BLUE_GREEN_CUTOVER_RESULT: total=30 ok=30 failed=0 blue_hits=30 green_hits=0
+req=11 status=200 slot=green version=4.1.0 pod=ensp461-lab4-app-green-8597bfcc6b-qltnq
+req=12 status=200 slot=green version=4.1.0 pod=ensp461-lab4-app-green-8597bfcc6b-qltnq
+req=15 status=200 slot=green version=4.1.0 pod=ensp461-lab4-app-green-8597bfcc6b-wkvpz
+req=30 status=200 slot=green version=4.1.0 pod=ensp461-lab4-app-green-8597bfcc6b-qltnq
+BLUE_GREEN_CUTOVER_RESULT: total=30 ok=30 failed=0 blue_hits=10 green_hits=20
 
 meenakshi@ubuntu:~/ensp461-lab4$ # Verify instant rollback back to BLUE (v4.0.0) and forward to GREEN (v4.1.0)
 service/ensp461-lab4-app-prod patched
-{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-blue-6469fd5bf5-7vbz6","slot":"blue","student":"Meenakshi Rakesh","version":"4.0.0"}
+{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-blue-6469fd5bf5-tjz9k","slot":"blue","student":"Meenakshi Rakesh","version":"4.0.0"}
 
 service/ensp461-lab4-app-prod patched
-{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-blue-6469fd5bf5-7vbz6","slot":"blue","student":"Meenakshi Rakesh","version":"4.0.0"}
+{"app":"ensp461-lab4-app","hostname":"ensp461-lab4-app-green-8597bfcc6b-qltnq","slot":"green","student":"Meenakshi Rakesh","version":"4.1.0"}
 
