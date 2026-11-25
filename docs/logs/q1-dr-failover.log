@@ -1,0 +1,21 @@
+meenakshi@ubuntu:~/ensp461-lab4$ # Step 3: Simulate primary disaster (stop primary + wipe primary DB)
+meenakshi@ubuntu:~/ensp461-lab4$ docker rm -f dr-meenakshi-primary && rm -f /tmp/dr-meenakshi/primary/app.db
+dr-meenakshi-primary
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s --max-time 3 -o /dev/null -w 'HTTP_STATUS=%{http_code}\n' http://localhost:5400/items
+HTTP_STATUS=000
+
+meenakshi@ubuntu:~/ensp461-lab4$ # Step 4: Execute automated restore & failover to standby
+meenakshi@ubuntu:~/ensp461-lab4$ ./dr/failover_restore.sh /tmp/dr-meenakshi/backups/backup-20261125T172252Z.tar.gz /tmp/dr-meenakshi/standby
+[dr] Verifying backup integrity...
+/tmp/dr-meenakshi/backups/backup-20261125T172252Z.tar.gz: OK
+[dr] Restoring SQLite snapshot to standby storage (/tmp/dr-meenakshi/standby)...
+RESTORE_OK target=/tmp/dr-meenakshi/standby/app.db elapsed_ms=14
+meenakshi@ubuntu:~/ensp461-lab4$ docker exec dr-meenakshi-gw nginx -s reload
+2026/11/25 17:22:56 [notice] 30#30: signal process started
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s http://localhost:5400/health
+{"slot":"standby","status":"UP","version":"4.1.0"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s http://localhost:5400/items
+{"count":5,"items":[{"created_at":"2026-11-25T17:22:52.616530+00:00","id":1,"name":"txn-101"},{"created_at":"2026-11-25T17:22:52.638422+00:00","id":2,"name":"txn-102"},{"created_at":"2026-11-25T17:22:52.658426+00:00","id":3,"name":"txn-103"},{"created_at":"2026-11-25T17:22:52.680714+00:00","id":4,"name":"txn-104"},{"created_at":"2026-11-25T17:22:52.705380+00:00","id":5,"name":"txn-105"}],"slot":"standby"}
+
+DR_SUMMARY: status=RECOVERED measured_rto_ms=1142 target_rto_ms=30000 rpo_records_lost=0

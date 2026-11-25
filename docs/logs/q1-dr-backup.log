@@ -1,0 +1,26 @@
+meenakshi@ubuntu:~/ensp461-lab4$ # Step 1: Verify primary health and seed critical transaction records
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s http://localhost:5400/health
+{"slot":"primary","status":"UP","version":"4.1.0"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s -X POST http://localhost:5400/items -H 'Content-Type: application/json' -d '{"name":"txn-101"}'
+{"created_at":"2026-11-25T17:22:52.616530+00:00","id":1,"name":"txn-101","slot":"primary"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s -X POST http://localhost:5400/items -H 'Content-Type: application/json' -d '{"name":"txn-102"}'
+{"created_at":"2026-11-25T17:22:52.638422+00:00","id":2,"name":"txn-102","slot":"primary"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s -X POST http://localhost:5400/items -H 'Content-Type: application/json' -d '{"name":"txn-103"}'
+{"created_at":"2026-11-25T17:22:52.658426+00:00","id":3,"name":"txn-103","slot":"primary"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s -X POST http://localhost:5400/items -H 'Content-Type: application/json' -d '{"name":"txn-104"}'
+{"created_at":"2026-11-25T17:22:52.680714+00:00","id":4,"name":"txn-104","slot":"primary"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ curl -s -X POST http://localhost:5400/items -H 'Content-Type: application/json' -d '{"name":"txn-105"}'
+{"created_at":"2026-11-25T17:22:52.705380+00:00","id":5,"name":"txn-105","slot":"primary"}
+
+meenakshi@ubuntu:~/ensp461-lab4$ # Step 2: Take online consistent SQLite backup with SHA-256 checksum
+meenakshi@ubuntu:~/ensp461-lab4$ ./dr/backup.sh /tmp/dr-meenakshi/primary/app.db /tmp/dr-meenakshi/backups
+BACKUP_OK archive=/tmp/dr-meenakshi/backups/backup-20261125T172252Z.tar.gz sha256=e757636429f47f6659ab8362aaf07e9ce78aba594ef104032ef07a415ba17c8b
+meenakshi@ubuntu:~/ensp461-lab4$ ls -lh /tmp/dr-meenakshi/backups/
+total 8.0K
+-rw-r--r-- 1 meenakshi meenakshi 487 Nov 25 17:22 backup-20261125T172252Z.tar.gz
+-rw-r--r-- 1 meenakshi meenakshi 123 Nov 25 17:22 backup-20261125T172252Z.tar.gz.sha256
